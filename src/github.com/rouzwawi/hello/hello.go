@@ -30,10 +30,43 @@ const (
 type Game struct {
 	state []int
 	lines [][][]int
+	player int
+}
+
+func (g Game) canMoveLine(line []int, player int) bool {
+	if g.state[line[0]] != EMPTY {
+		return false
+	}
+
+	other := other(player)
+	seen_other := false
+	for _, p := range line[1:] {
+		switch g.state[p] {
+		case EMPTY:
+			return false
+		case other:
+			seen_other = true
+		case player:
+			return seen_other
+		}
+	}
+
+	return false
+}
+
+func (g Game) canMove(i int, j int, player int) bool {
+	lines := g.lines[idx(i, j)]
+	for _, line := range lines {
+		if g.canMoveLine(line, player) {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (g Game) print() {
-	SYMBOLS := []int{' ', 'x', 'o'}
+	SYMBOLS := []int{' ', '●', '○', '+'}
 
 	fmt.Print(" ")
 	for i := 0; i < BOARD_SIZE; i++ {
@@ -43,13 +76,16 @@ func (g Game) print() {
 	for j := 0; j < BOARD_SIZE; j++ {
 		line := fmt.Sprintf("%d ", j)
 		for i := 0; i < BOARD_SIZE; i++ {
-			symbol := SYMBOLS[g.state[idx(i, j)]]
+			state := g.state[idx(i, j)]
+			if g.canMove(i, j, g.player) {
+				state = 3
+			}
+			symbol := SYMBOLS[state]
 			line += fmt.Sprintf("%c ", symbol)
 		}
 		fmt.Println(line)
 	}
 }
-
 
 func idx(i int, j int) int {
 	return j*BOARD_SIZE + i
@@ -61,6 +97,14 @@ func crd(i int) (int, int) {
 
 func bound(i int) bool {
 	return i >= 0 && i < BOARD_SIZE
+}
+
+func other(player int) int {
+	if player == P1 {
+		return P2
+	} else {
+		return P1
+	}
 }
 
 func nxt(d int, i int, j int) (int, int) {
@@ -105,6 +149,7 @@ func newGame() *Game {
 	game := new(Game)
 	game.state = make([]int, BOARD_SIZE*BOARD_SIZE)
 	game.lines = make([][][]int, BOARD_SIZE*BOARD_SIZE)
+	game.player = P1
 
 	for i := range game.state {
 		lines := make([][]int, DIRS)
