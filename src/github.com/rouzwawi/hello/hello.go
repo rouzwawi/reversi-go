@@ -65,8 +65,47 @@ func (g Game) canMove(i int, j int, player int) bool {
 	return false
 }
 
+func (g Game) anyMoves(player int) bool {
+	for j := 0; j < BOARD_SIZE; j++ {
+		for i := 0; i < BOARD_SIZE; i++ {
+			if g.canMove(i, j, player) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func (g *Game) play(i int, j int) {
+	if !g.canMove(i, j, g.player) {
+		return
+	}
+
+	plays := make([][]int, 0)
+	lines := g.lines[idx(i, j)]
+	for _, line := range lines {
+		if g.canMoveLine(line, g.player) {
+			plays = append(plays, line)
+		}
+	}
+
+	for _, play := range plays {
+		for i, p := range play {
+			if i > 0 && g.state[p] == g.player {
+				break
+			}
+			g.state[p] = g.player
+		}
+	}
+
+	g.player = other(g.player)
+	if !g.anyMoves(g.player) {
+		g.player = other(g.player)
+	}
+}
+
 func (g Game) print() {
-	SYMBOLS := []int{' ', '●', '○', '+'}
+	SYMBOLS := []int{' ', '●', '○', '+', '+'} // ◆◇
 
 	fmt.Print(" ")
 	for i := 0; i < BOARD_SIZE; i++ {
@@ -78,7 +117,7 @@ func (g Game) print() {
 		for i := 0; i < BOARD_SIZE; i++ {
 			state := g.state[idx(i, j)]
 			if g.canMove(i, j, g.player) {
-				state = 3
+				state = 2 + g.player
 			}
 			symbol := SYMBOLS[state]
 			line += fmt.Sprintf("%c ", symbol)
@@ -172,5 +211,9 @@ func newGame() *Game {
 
 func main() {
 	game := newGame()
+	game.print()
+	game.play(4,2)
+	game.print()
+	game.play(3,2)
 	game.print()
 }
