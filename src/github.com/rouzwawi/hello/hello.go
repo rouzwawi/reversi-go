@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"runtime"
 	"github.com/nsf/termbox-go"
+	"runtime"
 	// "github.com/rouzwawi/newmath"
 	// "github.com/edsrzf/mmap-go"
 )
@@ -29,8 +29,8 @@ const (
 )
 
 type Game struct {
-	state []int
-	lines [][][]int
+	state  []int
+	lines  [][][]int
 	player int
 }
 
@@ -174,8 +174,8 @@ func _line(d, i, j int, list []int) []int {
 
 func NewGame() *Game {
 	game := &Game{
-		state: make([]int, BOARD_SIZE*BOARD_SIZE),
-		lines: make([][][]int, BOARD_SIZE*BOARD_SIZE),
+		state:  make([]int, BOARD_SIZE*BOARD_SIZE),
+		lines:  make([][][]int, BOARD_SIZE*BOARD_SIZE),
 		player: P1,
 	}
 
@@ -217,14 +217,14 @@ func mouse_button_num(k termbox.Key) int {
 	return 0
 }
 
-func printGame(ci, cj int, game *Game) {
+func printGame(game *Game, ci, cj int) {
 	const header = 3
 	const c = termbox.ColorDefault
 	const b = termbox.ColorCyan
 	const g = termbox.ColorGreen
 	const r = termbox.ColorRed
-	var SYMBOLS = []int{' ', '●', '○', '+', '+'} // ◆◇
-	var COLORS  = []termbox.Attribute{c, b, r, c, c} // ◆◇
+	var SYMBOLS = []int{' ', '●', '○', '+', '+'}
+	var COLORS = []termbox.Attribute{c, b, r, c, c}
 
 	var line string
 
@@ -241,7 +241,7 @@ func printGame(ci, cj int, game *Game) {
 		ln := j + header
 		tbprint(0, ln, c, c, fmt.Sprintf("%d", j))
 		for i := 0; i < BOARD_SIZE; i++ {
-			cn := i * 2 + 1
+			cn := i*2 + 1
 
 			state := game.state[idx(i, j)]
 			if game.canMove(i, j, game.player) {
@@ -259,7 +259,7 @@ func printGame(ci, cj int, game *Game) {
 
 			if i == ci && j == cj {
 				tbprint(cn+2, ln, g, c, "]")
-			} else if i == ci - 1 && j == cj {
+			} else if i == ci-1 && j == cj {
 				tbprint(cn+2, ln, g, c, "[")
 			} else {
 				tbprint(cn+2, ln, c, c, " ")
@@ -267,7 +267,7 @@ func printGame(ci, cj int, game *Game) {
 		}
 		tbprint(BOARD_SIZE*2+2, ln, c, c, fmt.Sprintf("%d", j))
 	}
-	tbprint(0, BOARD_SIZE + header, c, c, line)
+	tbprint(0, BOARD_SIZE+header, c, c, line)
 }
 
 func main() {
@@ -286,7 +286,7 @@ func main() {
 	termbox.SetInputMode(termbox.InputAlt | termbox.InputMouse)
 
 	termbox.Clear(coldef, coldef)
-	printGame(i, j, game)
+	printGame(game, i, j)
 	termbox.Flush()
 
 	data := make([]byte, 0, 64)
@@ -324,24 +324,24 @@ mainloop:
 					i, j = nxtBound(S, i, j)
 				case 65517: // up
 					i, j = nxtBound(N, i, j)
-				case 13:   // enter
+				case 13: // enter
 					game.play(i, j)
 				}
 
 				// tbprint(0, 2, coldef, coldef,
 				// 	fmt.Sprintf("EventKey: k: %d, c: %c, mod: %d", curev.Key, curev.Ch, curev.Mod))
-			// case termbox.EventMouse:
-			// 	tbprint(0, 2, coldef, coldef,
-			// 		fmt.Sprintf("EventMouse: x: %d, y: %d, b: %d", curev.MouseX, curev.MouseY, mouse_button_num(curev.Key)))
-			// case termbox.EventNone:
-			// 	tbprint(0, 2, coldef, coldef, "EventNone")
+				// case termbox.EventMouse:
+				// 	tbprint(0, 2, coldef, coldef,
+				// 		fmt.Sprintf("EventMouse: x: %d, y: %d, b: %d", curev.MouseX, curev.MouseY, mouse_button_num(curev.Key)))
+				// case termbox.EventNone:
+				// 	tbprint(0, 2, coldef, coldef, "EventNone")
 			}
 		case termbox.EventError:
 			panic(ev.Err)
 		}
 
 		termbox.Clear(coldef, coldef)
-		printGame(i, j, game)
+		printGame(game, i, j)
 		termbox.Flush()
 	}
 }
