@@ -32,7 +32,7 @@ type Game struct {
 	player int
 }
 
-func (g Game) canMoveLine(line []int, player int) bool {
+func (g *Game) canMoveLine(line []int, player int) bool {
 	if g.state[line[0]] != EMPTY {
 		return false
 	}
@@ -53,7 +53,7 @@ func (g Game) canMoveLine(line []int, player int) bool {
 	return false
 }
 
-func (g Game) canMove(i, j, player int) bool {
+func (g *Game) canMove(i, j, player int) bool {
 	lines := g.lines[idx(i, j)]
 	for _, line := range lines {
 		if g.canMoveLine(line, player) {
@@ -64,7 +64,7 @@ func (g Game) canMove(i, j, player int) bool {
 	return false
 }
 
-func (g Game) anyMoves(player int) bool {
+func (g *Game) anyMoves(player int) bool {
 	for j := 0; j < BOARD_SIZE; j++ {
 		for i := 0; i < BOARD_SIZE; i++ {
 			if g.canMove(i, j, player) {
@@ -224,48 +224,43 @@ func printGame(game *Game, ci, cj int) {
 	var SYMBOLS = []int{' ', '●', '○', '+', '+'}
 	var COLORS = []termbox.Attribute{c, b, r, c, c}
 
-	var line string
+	// header
+	tbprint(0, 0, c, c, "player _'s turn")
+	tbprint(7, 0, COLORS[game.player], c, fmt.Sprintf("%c", SYMBOLS[game.player]))
 
-	line = fmt.Sprintf("player %c's turn", SYMBOLS[game.player])
-	tbprint(0, 0, c, c, line)
-
-	line = " "
+	// board numbers
 	for i := 0; i < BOARD_SIZE; i++ {
-		line += fmt.Sprintf(" %d", i)
+		n := fmt.Sprintf("%d", i)
+		tbprint(i*2+2, 2, c, c, n)
+		tbprint(i*2+2, BOARD_SIZE+header, c, c, fmt.Sprintf("%d", i))
+		tbprint(0, i+header, c, c, n)
+		tbprint(BOARD_SIZE*2+2, i+header, c, c, n)
 	}
-	tbprint(0, 2, c, c, line)
 
+	// game state
 	for j := 0; j < BOARD_SIZE; j++ {
-		ln := j + header
-		tbprint(0, ln, c, c, fmt.Sprintf("%d", j))
 		for i := 0; i < BOARD_SIZE; i++ {
-			cn := i*2 + 1
-
 			state := game.state[idx(i, j)]
+			cl := COLORS[state]
 			if game.canMove(i, j, game.player) {
-				state = 2 + game.player
+				if ci == i && cj == j {
+					cl = COLORS[game.player]
+					state = game.player
+				} else {
+					state = 2 + game.player
+				}
 			}
 			symbol := SYMBOLS[state]
 
-			if i == 0 && i == ci && j == cj {
-				tbprint(cn, ln, g, c, "[")
-			} else if i == 0 {
-				tbprint(cn, ln, c, c, " ")
-			}
-
-			tbprint(cn+1, ln, COLORS[state], c, fmt.Sprintf("%c", symbol))
-
-			if i == ci && j == cj {
-				tbprint(cn+2, ln, g, c, "]")
-			} else if i == ci-1 && j == cj {
-				tbprint(cn+2, ln, g, c, "[")
-			} else {
-				tbprint(cn+2, ln, c, c, " ")
-			}
+			tbprint(i*2+2, j + header,
+				cl, c,
+				fmt.Sprintf("%c", symbol))
 		}
-		tbprint(BOARD_SIZE*2+2, ln, c, c, fmt.Sprintf("%d", j))
 	}
-	tbprint(0, BOARD_SIZE+header, c, c, line)
+
+	// selector
+	tbprint(ci*2+1, cj+header, COLORS[game.player], c, "[")
+	tbprint(ci*2+3, cj+header, COLORS[game.player], c, "]")
 }
 
 func main() {
