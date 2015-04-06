@@ -284,7 +284,6 @@ func main() {
 		panic(err)
 	}
 	defer termbox.Close()
-	termbox.SetInputMode(termbox.InputAlt | termbox.InputMouse)
 
 	termbox.Clear(coldef, coldef)
 	printGame(game, i, j)
@@ -317,25 +316,17 @@ mainloop:
 				}
 
 				switch curev.Key {
-				case 65514: // right
+				case termbox.KeyArrowRight:
 					i, j = nxtBound(E, i, j)
-				case 65515: // left
+				case termbox.KeyArrowLeft:
 					i, j = nxtBound(W, i, j)
-				case 65516: // down
+				case termbox.KeyArrowDown:
 					i, j = nxtBound(S, i, j)
-				case 65517: // up
+				case termbox.KeyArrowUp: // up
 					i, j = nxtBound(N, i, j)
-				case 13: // enter
+				case termbox.KeyEnter:
 					game.play(i, j)
 				}
-
-				// tbprint(0, 2, coldef, coldef,
-				// 	fmt.Sprintf("EventKey: k: %d, c: %c, mod: %d", curev.Key, curev.Ch, curev.Mod))
-				// case termbox.EventMouse:
-				// 	tbprint(0, 2, coldef, coldef,
-				// 		fmt.Sprintf("EventMouse: x: %d, y: %d, b: %d", curev.MouseX, curev.MouseY, mouse_button_num(curev.Key)))
-				// case termbox.EventNone:
-				// 	tbprint(0, 2, coldef, coldef, "EventNone")
 			}
 		case termbox.EventError:
 			panic(ev.Err)
