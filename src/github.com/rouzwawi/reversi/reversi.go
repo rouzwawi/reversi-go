@@ -216,7 +216,7 @@ func mouse_button_num(k termbox.Key) int {
 }
 
 func printGame(game *Game, ci, cj int) {
-	const header = 4
+	const header = 3
 	const c = termbox.ColorDefault
 	const b = termbox.ColorCyan
 	const g = termbox.ColorGreen
@@ -268,7 +268,7 @@ func printGame(game *Game, ci, cj int) {
 	tbprint(14, 0, COLORS[P2], c, SYMBOLS[P2])
 
 	pp := (map[int]int{P1:4, P2:14})[game.player]
-	tbprint(pp, 1, COLORS[game.player], c, "↑")
+	tbprint(pp, 0, COLORS[game.player] | termbox.AttrUnderline, c, SYMBOLS[game.player])
 }
 
 func main() {
