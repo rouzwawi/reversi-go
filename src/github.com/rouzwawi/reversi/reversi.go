@@ -216,22 +216,20 @@ func mouse_button_num(k termbox.Key) int {
 }
 
 func printGame(game *Game, ci, cj int) {
-	const header = 3
+	const header = 4
 	const c = termbox.ColorDefault
 	const b = termbox.ColorCyan
 	const g = termbox.ColorGreen
 	const r = termbox.ColorRed
-	var SYMBOLS = []int{' ', '●', '○', '+', '+'}
+	var SYMBOLS = []string{" ", "●", "○", "+", "+"}
 	var COLORS = []termbox.Attribute{c, b, r, c, c}
 
-	// header
-	tbprint(0, 0, c, c, "player _'s turn")
-	tbprint(7, 0, COLORS[game.player], c, fmt.Sprintf("%c", SYMBOLS[game.player]))
+	var score [2]int
 
 	// board numbers
 	for i := 0; i < BOARD_SIZE; i++ {
 		n := fmt.Sprintf("%d", i)
-		tbprint(i*2+2, 2, c, c, n)
+		tbprint(i*2+2, header-1, c, c, n)
 		tbprint(i*2+2, BOARD_SIZE+header, c, c, fmt.Sprintf("%d", i))
 		tbprint(0, i+header, c, c, n)
 		tbprint(BOARD_SIZE*2+2, i+header, c, c, n)
@@ -242,6 +240,10 @@ func printGame(game *Game, ci, cj int) {
 		for i := 0; i < BOARD_SIZE; i++ {
 			state := game.state[idx(i, j)]
 			cl := COLORS[state]
+			if state != EMPTY {
+				score[state-1]++
+			}
+
 			if game.canMove(i, j, game.player) {
 				if ci == i && cj == j {
 					cl = COLORS[game.player]
@@ -252,15 +254,21 @@ func printGame(game *Game, ci, cj int) {
 			}
 			symbol := SYMBOLS[state]
 
-			tbprint(i*2+2, j + header,
-				cl, c,
-				fmt.Sprintf("%c", symbol))
+			tbprint(i*2+2, j + header, cl, c, symbol)
 		}
 	}
 
 	// selector
 	tbprint(ci*2+1, cj+header, COLORS[game.player], c, "[")
 	tbprint(ci*2+3, cj+header, COLORS[game.player], c, "]")
+
+	// header and score
+	tbprint(4, 0, c, c, fmt.Sprintf("_ %2d - %-2d _", score[0], score[1]))
+	tbprint(4, 0, COLORS[P1], c, SYMBOLS[P1])
+	tbprint(14, 0, COLORS[P2], c, SYMBOLS[P2])
+
+	pp := (map[int]int{P1:4, P2:14})[game.player]
+	tbprint(pp, 1, COLORS[game.player], c, "↑")
 }
 
 func main() {
