@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"runtime"
+	"github.com/nsf/termbox-go"
 	// "github.com/rouzwawi/newmath"
 	// "github.com/edsrzf/mmap-go"
 )
@@ -54,7 +55,7 @@ func (g Game) canMoveLine(line []int, player int) bool {
 	return false
 }
 
-func (g Game) canMove(i int, j int, player int) bool {
+func (g Game) canMove(i, j, player int) bool {
 	lines := g.lines[idx(i, j)]
 	for _, line := range lines {
 		if g.canMoveLine(line, player) {
@@ -76,7 +77,7 @@ func (g Game) anyMoves(player int) bool {
 	return false
 }
 
-func (g *Game) play(i int, j int) {
+func (g *Game) play(i, j int) {
 	if !g.canMove(i, j, g.player) {
 		return
 	}
@@ -104,29 +105,7 @@ func (g *Game) play(i int, j int) {
 	}
 }
 
-func (g Game) print() {
-	SYMBOLS := []int{' ', '●', '○', '+', '+'} // ◆◇
-
-	fmt.Print(" ")
-	for i := 0; i < BOARD_SIZE; i++ {
-		fmt.Printf(" %d", i)
-	}
-	fmt.Println("")
-	for j := 0; j < BOARD_SIZE; j++ {
-		line := fmt.Sprintf("%d ", j)
-		for i := 0; i < BOARD_SIZE; i++ {
-			state := g.state[idx(i, j)]
-			if g.canMove(i, j, g.player) {
-				state = 2 + g.player
-			}
-			symbol := SYMBOLS[state]
-			line += fmt.Sprintf("%c ", symbol)
-		}
-		fmt.Println(line)
-	}
-}
-
-func idx(i int, j int) int {
+func idx(i, j int) int {
 	return j*BOARD_SIZE + i
 }
 
@@ -146,7 +125,7 @@ func other(player int) int {
 	}
 }
 
-func nxt(d int, i int, j int) (int, int) {
+func nxt(d, i, j int) (int, int) {
 	switch d {
 	case E:
 		return i + 1, j
@@ -169,11 +148,20 @@ func nxt(d int, i int, j int) (int, int) {
 	}
 }
 
-func line(d int, i int, j int) []int {
+func nxtBound(d, i, j int) (int, int) {
+	_i, _j := nxt(d, i, j)
+	if bound(_i) && bound(_j) {
+		return _i, _j
+	} else {
+		return i, j
+	}
+}
+
+func line(d, i, j int) []int {
 	return _line(d, i, j, nil)
 }
 
-func _line(d int, i int, j int, list []int) []int {
+func _line(d, i, j int, list []int) []int {
 	if !bound(i) || !bound(j) {
 		return list
 	}
@@ -184,11 +172,12 @@ func _line(d int, i int, j int, list []int) []int {
 	return _line(d, i, j, list)
 }
 
-func newGame() *Game {
-	game := new(Game)
-	game.state = make([]int, BOARD_SIZE*BOARD_SIZE)
-	game.lines = make([][][]int, BOARD_SIZE*BOARD_SIZE)
-	game.player = P1
+func NewGame() *Game {
+	game := &Game{
+		state: make([]int, BOARD_SIZE*BOARD_SIZE),
+		lines: make([][][]int, BOARD_SIZE*BOARD_SIZE),
+		player: P1,
+	}
 
 	for i := range game.state {
 		lines := make([][]int, DIRS)
@@ -209,11 +198,150 @@ func newGame() *Game {
 	return game
 }
 
+func tbprint(x, y int, fg, bg termbox.Attribute, msg string) {
+	for _, c := range msg {
+		termbox.SetCell(x, y, c, fg, bg)
+		x++
+	}
+}
+
+func mouse_button_num(k termbox.Key) int {
+	switch k {
+	case termbox.MouseLeft:
+		return 0
+	case termbox.MouseMiddle:
+		return 1
+	case termbox.MouseRight:
+		return 2
+	}
+	return 0
+}
+
+func printGame(ci, cj int, game *Game) {
+	const header = 3
+	const c = termbox.ColorDefault
+	const b = termbox.ColorCyan
+	const g = termbox.ColorGreen
+	const r = termbox.ColorRed
+	var SYMBOLS = []int{' ', '●', '○', '+', '+'} // ◆◇
+	var COLORS  = []termbox.Attribute{c, b, r, c, c} // ◆◇
+
+	var line string
+
+	line = fmt.Sprintf("player %c's turn", SYMBOLS[game.player])
+	tbprint(0, 0, c, c, line)
+
+	line = " "
+	for i := 0; i < BOARD_SIZE; i++ {
+		line += fmt.Sprintf(" %d", i)
+	}
+	tbprint(0, 2, c, c, line)
+
+	for j := 0; j < BOARD_SIZE; j++ {
+		ln := j + header
+		tbprint(0, ln, c, c, fmt.Sprintf("%d", j))
+		for i := 0; i < BOARD_SIZE; i++ {
+			cn := i * 2 + 1
+
+			state := game.state[idx(i, j)]
+			if game.canMove(i, j, game.player) {
+				state = 2 + game.player
+			}
+			symbol := SYMBOLS[state]
+
+			if i == 0 && i == ci && j == cj {
+				tbprint(cn, ln, g, c, "[")
+			} else if i == 0 {
+				tbprint(cn, ln, c, c, " ")
+			}
+
+			tbprint(cn+1, ln, COLORS[state], c, fmt.Sprintf("%c", symbol))
+
+			if i == ci && j == cj {
+				tbprint(cn+2, ln, g, c, "]")
+			} else if i == ci - 1 && j == cj {
+				tbprint(cn+2, ln, g, c, "[")
+			} else {
+				tbprint(cn+2, ln, c, c, " ")
+			}
+		}
+		tbprint(BOARD_SIZE*2+2, ln, c, c, fmt.Sprintf("%d", j))
+	}
+	tbprint(0, BOARD_SIZE + header, c, c, line)
+}
+
 func main() {
-	game := newGame()
-	game.print()
-	game.play(4,2)
-	game.print()
-	game.play(3,2)
-	game.print()
+	var curev termbox.Event
+	i, j := 0, 0
+
+	game := NewGame()
+
+	const coldef = termbox.ColorDefault
+
+	err := termbox.Init()
+	if err != nil {
+		panic(err)
+	}
+	defer termbox.Close()
+	termbox.SetInputMode(termbox.InputAlt | termbox.InputMouse)
+
+	termbox.Clear(coldef, coldef)
+	printGame(i, j, game)
+	termbox.Flush()
+
+	data := make([]byte, 0, 64)
+mainloop:
+	for {
+		if cap(data)-len(data) < 32 {
+			newdata := make([]byte, len(data), len(data)+32)
+			copy(newdata, data)
+			data = newdata
+		}
+		beg := len(data)
+		d := data[beg : beg+32]
+		switch ev := termbox.PollRawEvent(d); ev.Type {
+		case termbox.EventRaw:
+			data = data[:beg+ev.N]
+			curev = termbox.ParseEvent(data)
+			if curev.N > 0 {
+				copy(data, data[curev.N:])
+				data = data[:len(data)-curev.N]
+			}
+
+			switch curev.Type {
+			case termbox.EventKey:
+				switch curev.Ch {
+				case 'q':
+					break mainloop
+				}
+
+				switch curev.Key {
+				case 65514: // right
+					i, j = nxtBound(E, i, j)
+				case 65515: // left
+					i, j = nxtBound(W, i, j)
+				case 65516: // down
+					i, j = nxtBound(S, i, j)
+				case 65517: // up
+					i, j = nxtBound(N, i, j)
+				case 13:   // enter
+					game.play(i, j)
+				}
+
+				// tbprint(0, 2, coldef, coldef,
+				// 	fmt.Sprintf("EventKey: k: %d, c: %c, mod: %d", curev.Key, curev.Ch, curev.Mod))
+			// case termbox.EventMouse:
+			// 	tbprint(0, 2, coldef, coldef,
+			// 		fmt.Sprintf("EventMouse: x: %d, y: %d, b: %d", curev.MouseX, curev.MouseY, mouse_button_num(curev.Key)))
+			// case termbox.EventNone:
+			// 	tbprint(0, 2, coldef, coldef, "EventNone")
+			}
+		case termbox.EventError:
+			panic(ev.Err)
+		}
+
+		termbox.Clear(coldef, coldef)
+		printGame(i, j, game)
+		termbox.Flush()
+	}
 }
