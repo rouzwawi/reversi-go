@@ -3,9 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/nsf/termbox-go"
-	"runtime"
-	// "github.com/rouzwawi/newmath"
-	// "github.com/edsrzf/mmap-go"
+	"errors"
 )
 
 const BOARD_SIZE = 8
@@ -144,7 +142,7 @@ func nxt(d, i, j int) (int, int) {
 	case SE:
 		return i + 1, j + 1
 	default:
-		panic(new(runtime.Error))
+		panic(errors.New("unknown direction"))
 	}
 }
 
