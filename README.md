@@ -1,6 +1,6 @@
 # reversi-go
 
-[![preview](img/reversi.gif)]
+![preview](img/reversi.gif)
 
 ## install
 
