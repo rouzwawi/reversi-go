@@ -234,6 +234,8 @@ func printGame(game *Game, ci, cj int, controls bool) {
 		}
 	}
 
+	WX, _ := termbox.Size()
+	LEFT := WX/2 - 10
 	SYMBOLS := []string{" ", "●", "○", "+", "+"}
 	COLORS := []termbox.Attribute{d, b, m, d, d}
 
@@ -242,10 +244,10 @@ func printGame(game *Game, ci, cj int, controls bool) {
 	// board numbers
 	for i := 0; i < BOARD_SIZE; i++ {
 		n := fmt.Sprintf("%d", i)
-		tbprint(i*2+2, header-1, d, n)
-		tbprint(i*2+2, BOARD_SIZE+header, d, fmt.Sprintf("%d", i))
-		tbprint(0, i+header, d, n)
-		tbprint(BOARD_SIZE*2+2, i+header, d, n)
+		tbprint(LEFT+i*2+2, header-1, d, n)
+		tbprint(LEFT+i*2+2, BOARD_SIZE+header, d, fmt.Sprintf("%d", i))
+		tbprint(LEFT, i+header, d, n)
+		tbprint(LEFT+BOARD_SIZE*2+2, i+header, d, n)
 	}
 
 	// game state
@@ -268,21 +270,21 @@ func printGame(game *Game, ci, cj int, controls bool) {
 			}
 			symbol := SYMBOLS[state]
 
-			tbprint(i*2+2, j+header, cl, symbol)
+			tbprint(LEFT+i*2+2, j+header, cl, symbol)
 		}
 	}
 
 	// selector
-	tbprint(ci*2+1, cj+header, COLORS[game.player], "[")
-	tbprint(ci*2+3, cj+header, COLORS[game.player], "]")
+	tbprint(LEFT+ci*2+1, cj+header, COLORS[game.player], "[")
+	tbprint(LEFT+ci*2+3, cj+header, COLORS[game.player], "]")
 
 	// header and score
-	tbprint(4, 0, d, fmt.Sprintf("_ %2d - %-2d _", score[0], score[1]))
-	tbprint(4, 0, COLORS[P1], SYMBOLS[P1])
-	tbprint(14, 0, COLORS[P2], SYMBOLS[P2])
+	tbprint(LEFT+4, 0, d, fmt.Sprintf("_ %2d - %-2d _", score[0], score[1]))
+	tbprint(LEFT+4, 0, COLORS[P1], SYMBOLS[P1])
+	tbprint(LEFT+14, 0, COLORS[P2], SYMBOLS[P2])
 
 	pp := (map[int]int{P1: 4, P2: 14})[game.player]
-	tbprint(pp, 0, COLORS[game.player]|termbox.AttrUnderline, SYMBOLS[game.player])
+	tbprint(LEFT+pp, 0, COLORS[game.player]|termbox.AttrUnderline, SYMBOLS[game.player])
 }
 
 func main() {
