@@ -218,6 +218,8 @@ func New() *Game {
 	return game
 }
 
+var msg string
+
 func printGame(game *Game, ci, cj int, controls bool) {
 	const header = 3
 	const d = termbox.ColorDefault
@@ -236,8 +238,8 @@ func printGame(game *Game, ci, cj int, controls bool) {
 
 	WX, _ := termbox.Size()
 	LEFT := WX/2 - 10
-	SYMBOLS := []string{" ", "●", "○", "+", "+"}
-	COLORS := []termbox.Attribute{d, b, m, d, d}
+	SYMBOLS := []string{" ", "●", "●", "+", "+"} // ○
+	COLORS := []termbox.Attribute{d, b, y, d, d}
 
 	var score [2]int
 
@@ -265,7 +267,7 @@ func printGame(game *Game, ci, cj int, controls bool) {
 					state = game.player
 				} else {
 					state = 2 + game.player
-					cl = y | termbox.AttrBold
+					cl = m
 				}
 			}
 			symbol := SYMBOLS[state]
@@ -285,6 +287,12 @@ func printGame(game *Game, ci, cj int, controls bool) {
 
 	pp := (map[int]int{P1: 4, P2: 14})[game.player]
 	tbprint(LEFT+pp, 0, COLORS[game.player]|termbox.AttrUnderline, SYMBOLS[game.player])
+
+	// message
+	if len(msg) > 0 {
+		tbprint(LEFT+9-len(msg)/2, BOARD_SIZE+header+2, g, msg)
+		msg = ""
+	}
 }
 
 func main() {
@@ -339,8 +347,10 @@ mainloop:
 				case 'a':
 					if game.anim == nil {
 						game.anim = animFunc
+						msg = "animation on"
 					} else {
 						game.anim = nil
+						msg = "animation off"
 					}
 				}
 
