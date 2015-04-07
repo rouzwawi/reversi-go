@@ -352,6 +352,10 @@ mainloop:
 						game.anim = nil
 						msg = "animation off"
 					}
+				case 'n':
+					newGame := New()
+					newGame.anim = game.anim
+					game = newGame
 				}
 
 				switch curev.Key {
