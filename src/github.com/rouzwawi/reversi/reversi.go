@@ -223,7 +223,7 @@ var msg string
 func printGame(game *Game, ci, cj int, controls bool) {
 	const header = 3
 	const d = termbox.ColorDefault
-	const b = termbox.ColorCyan
+	const b = termbox.ColorBlue
 	const m = termbox.ColorMagenta
 	const g = termbox.ColorGreen
 	const y = termbox.ColorYellow
@@ -290,7 +290,7 @@ func printGame(game *Game, ci, cj int, controls bool) {
 
 	// message
 	if len(msg) > 0 {
-		tbprint(LEFT+9-len(msg)/2, BOARD_SIZE+header+2, g, msg)
+		tbprint(LEFT+9-len(msg)/2, BOARD_SIZE+header+2, b, msg)
 		msg = ""
 	}
 }
