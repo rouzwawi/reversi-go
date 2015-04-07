@@ -1,9 +1,9 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"github.com/nsf/termbox-go"
-	"errors"
 )
 
 const BOARD_SIZE = 8
@@ -254,7 +254,7 @@ func printGame(game *Game, ci, cj int) {
 			}
 			symbol := SYMBOLS[state]
 
-			tbprint(i*2+2, j + header, cl, c, symbol)
+			tbprint(i*2+2, j+header, cl, c, symbol)
 		}
 	}
 
@@ -267,8 +267,8 @@ func printGame(game *Game, ci, cj int) {
 	tbprint(4, 0, COLORS[P1], c, SYMBOLS[P1])
 	tbprint(14, 0, COLORS[P2], c, SYMBOLS[P2])
 
-	pp := (map[int]int{P1:4, P2:14})[game.player]
-	tbprint(pp, 0, COLORS[game.player] | termbox.AttrUnderline, c, SYMBOLS[game.player])
+	pp := (map[int]int{P1: 4, P2: 14})[game.player]
+	tbprint(pp, 0, COLORS[game.player]|termbox.AttrUnderline, c, SYMBOLS[game.player])
 }
 
 func main() {
