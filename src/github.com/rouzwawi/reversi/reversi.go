@@ -222,7 +222,9 @@ func printGame(game *Game, ci, cj int, controls bool) {
 	const header = 3
 	const d = termbox.ColorDefault
 	const b = termbox.ColorCyan
+	const m = termbox.ColorMagenta
 	const g = termbox.ColorGreen
+	const y = termbox.ColorYellow
 	const r = termbox.ColorRed
 
 	tbprint := func(x, y int, fg termbox.Attribute, msg string) {
@@ -233,7 +235,7 @@ func printGame(game *Game, ci, cj int, controls bool) {
 	}
 
 	SYMBOLS := []string{" ", "●", "○", "+", "+"}
-	COLORS := []termbox.Attribute{d, b, r, d, d}
+	COLORS := []termbox.Attribute{d, b, m, d, d}
 
 	var score [2]int
 
@@ -261,6 +263,7 @@ func printGame(game *Game, ci, cj int, controls bool) {
 					state = game.player
 				} else {
 					state = 2 + game.player
+					cl = y | termbox.AttrBold
 				}
 			}
 			symbol := SYMBOLS[state]
