@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/nsf/termbox-go"
+	"time"
 )
 
 const BOARD_SIZE = 8
@@ -30,6 +31,7 @@ type Game struct {
 	state  []int
 	lines  [][][]int
 	player int
+	anim   func()
 }
 
 func (g *Game) canMoveLine(line []int, player int) bool {
@@ -82,18 +84,38 @@ func (g *Game) play(i, j int) {
 
 	plays := make([][]int, 0)
 	lines := g.lines[idx(i, j)]
+	maxlen := 0
 	for _, line := range lines {
 		if g.canMoveLine(line, g.player) {
 			plays = append(plays, line)
+			if len(line) > maxlen {
+				maxlen = len(line)
+			}
 		}
 	}
 
-	for _, play := range plays {
-		for i, p := range play {
-			if i > 0 && g.state[p] == g.player {
-				break
+	g.state[idx(i, j)] = g.player
+
+	done := make([]bool, len(plays))
+	nrem := len(plays)
+	for i := 1; i < maxlen; i++ {
+		for k, play := range plays {
+			if len(play) <= i || done[k] {
+				continue
+			}
+			p := play[i]
+			if g.state[p] == g.player {
+				done[k] = true
+				nrem--
+				continue
 			}
 			g.state[p] = g.player
+		}
+		if nrem == 0 {
+			break
+		}
+		if g.anim != nil {
+			g.anim()
 		}
 	}
 
@@ -170,7 +192,7 @@ func _line(d, i, j int, list []int) []int {
 	return _line(d, i, j, list)
 }
 
-func NewGame() *Game {
+func New() *Game {
 	game := &Game{
 		state:  make([]int, BOARD_SIZE*BOARD_SIZE),
 		lines:  make([][][]int, BOARD_SIZE*BOARD_SIZE),
@@ -196,7 +218,7 @@ func NewGame() *Game {
 	return game
 }
 
-func printGame(game *Game, ci, cj int) {
+func printGame(game *Game, ci, cj int, controls bool) {
 	const header = 3
 	const d = termbox.ColorDefault
 	const b = termbox.ColorCyan
@@ -233,7 +255,7 @@ func printGame(game *Game, ci, cj int) {
 				score[state-1]++
 			}
 
-			if game.canMove(i, j, game.player) {
+			if controls && game.canMove(i, j, game.player) {
 				if ci == i && cj == j {
 					cl = COLORS[game.player]
 					state = game.player
@@ -261,12 +283,19 @@ func printGame(game *Game, ci, cj int) {
 }
 
 func main() {
+	const coldef = termbox.ColorDefault
 	var curev termbox.Event
 	i, j := 0, 0
 
-	game := NewGame()
+	game := New()
 
-	const coldef = termbox.ColorDefault
+	var animFunc = func() {
+		termbox.Clear(coldef, coldef)
+		printGame(game, i, j, false)
+		termbox.Flush()
+		time.Sleep(100 * time.Millisecond)
+	}
+	game.anim = animFunc
 
 	err := termbox.Init()
 	if err != nil {
@@ -275,7 +304,7 @@ func main() {
 	defer termbox.Close()
 
 	termbox.Clear(coldef, coldef)
-	printGame(game, i, j)
+	printGame(game, i, j, true)
 	termbox.Flush()
 
 	data := make([]byte, 0, 64)
@@ -302,6 +331,12 @@ mainloop:
 				switch curev.Ch {
 				case 'q':
 					break mainloop
+				case 'a':
+					if game.anim == nil {
+						game.anim = animFunc
+					} else {
+						game.anim = nil
+					}
 				}
 
 				switch curev.Key {
@@ -322,7 +357,7 @@ mainloop:
 		}
 
 		termbox.Clear(coldef, coldef)
-		printGame(game, i, j)
+		printGame(game, i, j, true)
 		termbox.Flush()
 	}
 }
