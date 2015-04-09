@@ -289,10 +289,17 @@ func printGame(game *Game, ci, cj int, controls bool) {
 	tbprint(LEFT+pp, 0, COLORS[game.player]|termbox.AttrUnderline, SYMBOLS[game.player])
 
 	// message
-	if len(msg) > 0 {
-		tbprint(LEFT+9-len(msg)/2, BOARD_SIZE+header+2, b, msg)
-		msg = ""
+	if len(msg) == 0 {
+		for i := 0; i < len(game.state); i += 2 {
+			if i == len(game.state)/2 {
+				msg += "-"
+			}
+			msg += fmt.Sprintf("%x", game.state[i]<<2|game.state[i+1])
+		}
 	}
+
+	tbprint(LEFT+9-len(msg)/2, BOARD_SIZE+header+2, b, msg)
+	msg = ""
 }
 
 func main() {
