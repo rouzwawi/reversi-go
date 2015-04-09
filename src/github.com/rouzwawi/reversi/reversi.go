@@ -309,10 +309,13 @@ func main() {
 
 	game := New()
 
-	var animFunc = func() {
+	var refresh = func(controls bool) {
 		termbox.Clear(coldef, coldef)
-		printGame(game, i, j, false)
+		printGame(game, i, j, controls)
 		termbox.Flush()
+	}
+	var animFunc = func() {
+		refresh(false)
 		time.Sleep(100 * time.Millisecond)
 	}
 	game.anim = animFunc
@@ -323,9 +326,7 @@ func main() {
 	}
 	defer termbox.Close()
 
-	termbox.Clear(coldef, coldef)
-	printGame(game, i, j, true)
-	termbox.Flush()
+	refresh(true)
 
 	data := make([]byte, 0, 64)
 mainloop:
@@ -382,8 +383,6 @@ mainloop:
 			panic(ev.Err)
 		}
 
-		termbox.Clear(coldef, coldef)
-		printGame(game, i, j, true)
-		termbox.Flush()
+		refresh(true)
 	}
 }
