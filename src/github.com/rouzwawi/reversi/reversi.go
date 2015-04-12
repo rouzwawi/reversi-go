@@ -28,10 +28,12 @@ const (
 )
 
 type Game struct {
-	state  []int
-	lines  [][][]int
-	player int
-	anim   func()
+	state        []int
+	lines        [][][]int
+	player       int
+	showControls bool
+	anim         func()
+	clock        *Clock
 }
 
 func (g *Game) canMoveLine(line []int, player int) bool {
@@ -94,6 +96,7 @@ func (g *Game) play(i, j int) {
 		}
 	}
 
+	g.showControls = false
 	g.state[idx(i, j)] = g.player
 
 	done := make([]bool, len(plays))
@@ -123,6 +126,8 @@ func (g *Game) play(i, j int) {
 	if !g.anyMoves(g.player) {
 		g.player = other(g.player)
 	}
+
+	g.showControls = true
 }
 
 func idx(i, j int) int {
@@ -192,11 +197,40 @@ func _line(d, i, j int, list []int) []int {
 	return _line(d, i, j, list)
 }
 
+type Clock struct {
+	ticker   *time.Ticker
+	Tick     bool
+	Duration time.Duration
+	TickFunc func()
+}
+
+func NewClock() *Clock {
+	clock := &Clock{
+		ticker: time.NewTicker(time.Millisecond * 500),
+		Tick:   true,
+	}
+	t0 := time.Now()
+
+	go func() {
+		for t := range clock.ticker.C {
+			clock.Tick = !clock.Tick
+			clock.Duration = t.Sub(t0)
+			if clock.TickFunc != nil {
+				clock.TickFunc()
+			}
+		}
+	}()
+
+	return clock
+}
+
 func New() *Game {
 	game := &Game{
-		state:  make([]int, BOARD_SIZE*BOARD_SIZE),
-		lines:  make([][][]int, BOARD_SIZE*BOARD_SIZE),
-		player: P1,
+		state:        make([]int, BOARD_SIZE*BOARD_SIZE),
+		lines:        make([][][]int, BOARD_SIZE*BOARD_SIZE),
+		player:       P1,
+		showControls: true,
+		clock:        NewClock(),
 	}
 
 	for i := range game.state {
@@ -220,7 +254,7 @@ func New() *Game {
 
 var msg string
 
-func printGame(game *Game, ci, cj int, controls bool) {
+func printGame(game *Game, ci, cj int) {
 	const header = 3
 	const d = termbox.ColorDefault
 	const b = termbox.ColorBlue
@@ -261,7 +295,7 @@ func printGame(game *Game, ci, cj int, controls bool) {
 				score[state-1]++
 			}
 
-			if controls && game.canMove(i, j, game.player) {
+			if game.showControls && game.canMove(i, j, game.player) {
 				if ci == i && cj == j {
 					cl = COLORS[game.player]
 					state = game.player
@@ -300,6 +334,15 @@ func printGame(game *Game, ci, cj int, controls bool) {
 
 	tbprint(LEFT+9-len(msg)/2, BOARD_SIZE+header+2, b, msg)
 	msg = ""
+
+	mins := int(game.clock.Duration.Minutes())
+	secs := int(game.clock.Duration.Seconds()) % 60
+	deli := ":"
+	if !game.clock.Tick {
+		deli = " "
+	}
+	time := fmt.Sprintf("%02d%s%02d", mins, deli, secs)
+	tbprint(LEFT+9-len(time)/2, BOARD_SIZE+header+3, b, time)
 }
 
 func main() {
@@ -309,16 +352,17 @@ func main() {
 
 	game := New()
 
-	var refresh = func(controls bool) {
+	var refresh = func() {
 		termbox.Clear(coldef, coldef)
-		printGame(game, i, j, controls)
+		printGame(game, i, j)
 		termbox.Flush()
 	}
 	var animFunc = func() {
-		refresh(false)
+		refresh()
 		time.Sleep(100 * time.Millisecond)
 	}
 	game.anim = animFunc
+	game.clock.TickFunc = refresh
 
 	err := termbox.Init()
 	if err != nil {
@@ -326,7 +370,7 @@ func main() {
 	}
 	defer termbox.Close()
 
-	refresh(true)
+	refresh()
 
 	data := make([]byte, 0, 64)
 mainloop:
@@ -383,6 +427,6 @@ mainloop:
 			panic(ev.Err)
 		}
 
-		refresh(true)
+		refresh()
 	}
 }
