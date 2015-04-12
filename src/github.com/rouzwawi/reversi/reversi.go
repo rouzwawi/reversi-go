@@ -33,7 +33,7 @@ type Game struct {
 	player       int
 	showControls bool
 	msg          string
-	msgTime      time.Time
+	msgTimer     *time.Timer
 	anim         func()
 	clock        *Clock
 }
@@ -83,7 +83,21 @@ func (g *Game) anyMoves(player int) bool {
 
 func (g *Game) setMessage(msg string) {
 	g.msg = msg
-	g.msgTime = time.Now()
+	if g.msgTimer != nil {
+		g.msgTimer.Reset(time.Second)
+	} else {
+		g.msgTimer = time.NewTimer(time.Second)
+	}
+
+	go func() {
+		for t := range g.msgTimer.C {
+			var _ = t
+			g.msg = ""
+			if g.anim != nil {
+				g.anim()
+			}
+		}
+	}()
 }
 
 func (g *Game) play(i, j int) {
@@ -328,19 +342,17 @@ func printGame(game *Game, ci, cj int) {
 	tbprint(LEFT+pp, 0, COLORS[game.player]|termbox.AttrUnderline, SYMBOLS[game.player])
 
 	// message
-	if len(game.msg) == 0 {
+	msg := game.msg
+	if len(msg) == 0 {
 		for i := 0; i < len(game.state); i += 2 {
 			if i == len(game.state)/2 {
-				game.msg += "-"
+				msg += "-"
 			}
-			game.msg += fmt.Sprintf("%x", game.state[i]<<2|game.state[i+1])
+			msg += fmt.Sprintf("%x", game.state[i]<<2|game.state[i+1])
 		}
 	}
 
-	tbprint(LEFT+9-len(game.msg)/2, BOARD_SIZE+header+2, b, game.msg)
-	if time.Now().Sub(game.msgTime).Seconds() > 1 {
-		game.msg = ""
-	}
+	tbprint(LEFT+9-len(msg)/2, BOARD_SIZE+header+2, b, msg)
 
 	mins := int(game.clock.Duration.Minutes())
 	secs := int(game.clock.Duration.Seconds()) % 60
