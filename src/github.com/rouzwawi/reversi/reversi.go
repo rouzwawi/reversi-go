@@ -35,6 +35,7 @@ type Game struct {
 	msg          string
 	msgTimer     *time.Timer
 	anim         func()
+	draw         func()
 	clock        *Clock
 }
 
@@ -81,23 +82,28 @@ func (g *Game) anyMoves(player int) bool {
 	return false
 }
 
+func (g *Game) triggerRefresh() {
+	if g.draw != nil {
+		g.draw()
+	}
+}
+
 func (g *Game) setMessage(msg string) {
 	g.msg = msg
+	g.triggerRefresh()
+
 	if g.msgTimer != nil {
 		g.msgTimer.Reset(time.Second)
 	} else {
 		g.msgTimer = time.NewTimer(time.Second)
-	}
-
-	go func() {
-		for t := range g.msgTimer.C {
-			var _ = t
-			g.msg = ""
-			if g.anim != nil {
-				g.anim()
+		go func() {
+			for t := range g.msgTimer.C {
+				var _ = t
+				g.msg = ""
+				g.triggerRefresh()
 			}
-		}
-	}()
+		}()
+	}
 }
 
 func (g *Game) play(i, j int) {
@@ -381,6 +387,7 @@ func main() {
 		time.Sleep(100 * time.Millisecond)
 	}
 	game.anim = animFunc
+	game.draw = refresh
 	game.clock.TickFunc = refresh
 
 	err := termbox.Init()
