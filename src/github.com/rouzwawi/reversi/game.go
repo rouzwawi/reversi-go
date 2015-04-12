@@ -1,3 +1,4 @@
+// A reversi (othello) game
 package reversi
 
 import (
@@ -7,12 +8,14 @@ import (
 
 const BOARD_SIZE = 8
 
+// The different board cell states
 const (
 	EMPTY = iota
 	P1
 	P2
 )
 
+// 8 directions used by the game logic to apply the game rules
 const DIRS = 8
 const (
 	E = iota
