@@ -273,7 +273,7 @@ func printGame(game *Game, ci, cj int) {
 	WX, _ := termbox.Size()
 	LEFT := WX/2 - 10
 	SYMBOLS := []string{" ", "●", "●", "+", "+"} // ○
-	COLORS := []termbox.Attribute{d, b, y, d, d}
+	COLORS := []termbox.Attribute{d, b, r, d, d}
 
 	var score [2]int
 
@@ -301,7 +301,7 @@ func printGame(game *Game, ci, cj int) {
 					state = game.player
 				} else {
 					state = 2 + game.player
-					cl = m
+					cl = g
 				}
 			}
 			symbol := SYMBOLS[state]
