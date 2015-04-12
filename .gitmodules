@@ -1,0 +1,6 @@
+[submodule "src/github.com/nsf/termbox-go"]
+	path = src/github.com/nsf/termbox-go
+	url = git@github.com:nsf/termbox-go.git
+[submodule "src/github.com/mattn/go-runewidth"]
+	path = src/github.com/mattn/go-runewidth
+	url = git@github.com:mattn/go-runewidth.git
