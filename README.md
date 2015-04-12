@@ -4,8 +4,10 @@
 
 ## install
 
+Ensure you have `GOPATH` and `GOBIN` and `PATH` properly set up, then
+
 ```sh
-$ ./install.sh
+$ go install reversi.go
 ```
 
 ## run
