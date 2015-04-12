@@ -32,6 +32,8 @@ type Game struct {
 	lines        [][][]int
 	player       int
 	showControls bool
+	msg          string
+	msgTime      time.Time
 	anim         func()
 	clock        *Clock
 }
@@ -77,6 +79,11 @@ func (g *Game) anyMoves(player int) bool {
 		}
 	}
 	return false
+}
+
+func (g *Game) setMessage(msg string) {
+	g.msg = msg
+	g.msgTime = time.Now()
 }
 
 func (g *Game) play(i, j int) {
@@ -252,8 +259,6 @@ func New() *Game {
 	return game
 }
 
-var msg string
-
 func printGame(game *Game, ci, cj int) {
 	const header = 3
 	const d = termbox.ColorDefault
@@ -323,17 +328,19 @@ func printGame(game *Game, ci, cj int) {
 	tbprint(LEFT+pp, 0, COLORS[game.player]|termbox.AttrUnderline, SYMBOLS[game.player])
 
 	// message
-	if len(msg) == 0 {
+	if len(game.msg) == 0 {
 		for i := 0; i < len(game.state); i += 2 {
 			if i == len(game.state)/2 {
-				msg += "-"
+				game.msg += "-"
 			}
-			msg += fmt.Sprintf("%x", game.state[i]<<2|game.state[i+1])
+			game.msg += fmt.Sprintf("%x", game.state[i]<<2|game.state[i+1])
 		}
 	}
 
-	tbprint(LEFT+9-len(msg)/2, BOARD_SIZE+header+2, b, msg)
-	msg = ""
+	tbprint(LEFT+9-len(game.msg)/2, BOARD_SIZE+header+2, b, game.msg)
+	if time.Now().Sub(game.msgTime).Seconds() > 1 {
+		game.msg = ""
+	}
 
 	mins := int(game.clock.Duration.Minutes())
 	secs := int(game.clock.Duration.Seconds()) % 60
@@ -399,10 +406,10 @@ mainloop:
 				case 'a':
 					if game.anim == nil {
 						game.anim = animFunc
-						msg = "animation on"
+						game.setMessage("animation on")
 					} else {
 						game.anim = nil
-						msg = "animation off"
+						game.setMessage("animation off")
 					}
 				case 'n':
 					newGame := New()
