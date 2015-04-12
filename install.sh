@@ -3,3 +3,4 @@
 go get github.com/nsf/termbox-go
 
 go install github.com/rouzwawi/reversi
+go install reversi.go
