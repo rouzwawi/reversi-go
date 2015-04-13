@@ -7,12 +7,12 @@
 Ensure you have `GOPATH` and `GOBIN` and `PATH` properly set up, then
 
 ```sh
-$ git submodule update --init --recursive
-$ go install reversi.go
+$ go get github.com/rouzwawi/reversi-go
+$ go install github.com/rouzwawi/reversi-go/cmd/...
 ```
 
 ## run
 
 ```sh
-$ bin/reversi
+$ reversi
 ```
