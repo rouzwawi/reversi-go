@@ -7,8 +7,7 @@
 Ensure you have `GOPATH` and `GOBIN` and `PATH` properly set up, then
 
 ```sh
-$ go get github.com/rouzwawi/reversi-go
-$ go install github.com/rouzwawi/reversi-go/cmd/...
+$ go get github.com/rouzwawi/reversi-go/cmd/...
 ```
 
 ## run
