@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/nsf/termbox-go"
-	"github.com/rouzwawi/reversi"
+	"github.com/rouzwawi/reversi-go"
 	"time"
 )
 
